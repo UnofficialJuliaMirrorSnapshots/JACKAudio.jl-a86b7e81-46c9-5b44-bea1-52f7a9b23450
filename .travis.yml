@@ -1,0 +1,47 @@
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
+language: julia
+# os:
+#   - linux
+  # - osx
+notifications:
+  email: false
+matrix:
+  include:
+    - julia: 0.4
+      os: linux
+      env:
+        - JACKD=1
+      addons:
+        apt:
+          packages:
+            - jackd1
+    - julia: 0.4
+      os: linux
+      env:
+        - JACKD=2
+      addons:
+        apt:
+          packages:
+            - jackd2
+    - julia: 0.5
+      os: linux
+      env:
+        - JACKD=1
+      addons:
+        apt:
+          packages:
+            - jackd1
+    - julia: 0.5
+      os: linux
+      env:
+        - JACKD=2
+      addons:
+        apt:
+          packages:
+            - jackd2
+script:
+ - jackd -r -p24 -ddummy -r48000 -p2048 &
+ - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+ - julia -e 'Pkg.clone(pwd()); Pkg.build("JACKAudio"); Pkg.test("JACKAudio"; coverage=true)'
+after_success:
+  - julia -e 'cd(Pkg.dir("JACKAudio")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
